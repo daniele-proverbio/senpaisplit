@@ -22,7 +22,7 @@ The app works fully **offline** after the first visit — no internet needed at 
 
 Users can directly access:
 ```
-https://daniele-proverbio.github.io/senpaisplit/
+https://daniele-proverbio.github.io/senpaisplit/[https://daniele-proverbio.github.io/senpaisplit/]
 ```
 
 They can open it in any browser and install it from there. No app store required.
