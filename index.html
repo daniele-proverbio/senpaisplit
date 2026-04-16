@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SenpaiSplit" />
+  <title>SenpaiSplit</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#0f0f1a; --bg2:#1a1a2e; --bg3:#252540; --surface:#1e1e35;
+      --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+      --text:#f0eee8; --text2:#9997aa; --text3:#6b6980;
+      --accent:#c8a96e; --accent2:#e8c98e; --accent-bg:rgba(200,169,110,0.12);
+      --red:#e86060; --red-bg:rgba(232,96,96,0.12);
+      --green:#5cc88a; --green-bg:rgba(92,200,138,0.1);
+      --blue:#6ea8c8; --blue-bg:rgba(110,168,200,0.12);
+      --radius:12px; --radius-sm:8px;
+    }
+    html { font-size:16px; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100dvh; line-height:1.6; overscroll-behavior:none; }
+
+    .app { max-width:520px; margin:0 auto; padding:0 16px 120px; }
+
+    /* HEADER */
+    .header { padding:40px 0 24px; display:flex; align-items:flex-end; justify-content:space-between; gap:8px; }
+    .header-title { font-family:'DM Serif Display',serif; font-size:36px; letter-spacing:-0.5px; line-height:1.1; }
+    .header-title span { color:var(--accent); font-style:italic; }
+    .header-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .header-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+    .yen-badge { background:var(--accent-bg); border:1px solid rgba(200,169,110,0.3); color:var(--accent); font-size:12px; font-weight:500; padding:4px 10px; border-radius:20px; letter-spacing:0.5px; }
+
+    /* SECTIONS */
+    .section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:12px; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:14px; }
+
+    /* INPUTS */
+    .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    .field:last-child { margin-bottom:0; }
+    label { font-size:13px; color:var(--text2); font-weight:400; }
+    input[type="number"], input[type="text"], select {
+      background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius-sm);
+      color:var(--text); font-family:'DM Sans',sans-serif; font-size:16px; padding:10px 14px;
+      width:100%; outline:none; transition:border-color 0.15s; -webkit-appearance:none;
+    }
+    input[type="number"]:focus, input[type="text"]:focus, select:focus { border-color:var(--accent); }
+    input::placeholder { color:var(--text3); }
+    select {
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6980' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; cursor:pointer;
+    }
+
+    /* ITEMS */
+    .items-list { display:flex; flex-direction:column; gap:8px; }
+    .item-row { display:grid; grid-template-columns:1fr 110px 36px; gap:8px; align-items:center; }
+
+    /* PEOPLE */
+    .person-card { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:8px; transition:border-color 0.15s; animation:fadeIn 0.2s ease; }
+    .person-card:last-child { margin-bottom:0; }
+    .person-card.expanded { border-color:var(--border2); }
+    .person-header { display:flex; align-items:center; gap:10px; user-select:none; }
+    .person-avatar { width:34px; height:34px; border-radius:50%; background:var(--accent-bg); border:1px solid rgba(200,169,110,0.25); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--accent); flex-shrink:0; cursor:pointer; }
+    .person-name-input { flex:1; background:transparent; border:none; color:var(--text); font-size:15px; font-family:'DM Sans',sans-serif; font-weight:500; outline:none; padding:0; min-width:0; }
+    .person-name-input::placeholder { color:var(--text3); }
+    .person-tags { display:flex; gap:5px; flex-shrink:0; flex-wrap:wrap; }
+    .tag { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; }
+    .tag-weight { background:var(--accent-bg); color:var(--accent); border:1px solid rgba(200,169,110,0.2); }
+    .tag-nodrink { background:var(--red-bg); color:var(--red); border:1px solid rgba(232,96,96,0.2); }
+    .tag-moredrink { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(110,168,200,0.2); }
+    .tag-fixed { background:var(--green-bg); color:var(--green); border:1px solid rgba(92,200,138,0.2); }
+    .person-details { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); display:none; }
+    .person-card.expanded .person-details { display:block; }
+
+    /* WEIGHT BUTTONS */
+    .weight-selector { display:flex; gap:6px; margin-bottom:14px; }
+    .weight-btn { flex:1; height:36px; border-radius:var(--radius-sm); border:1px solid var(--border); background:transparent; color:var(--text2); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.15s; }
+    .weight-btn:hover { border-color:var(--border2); color:var(--text); }
+    .weight-btn.active { background:var(--accent-bg); border-color:rgba(200,169,110,0.4); color:var(--accent); }
+
+    /* DRINK TRISTATE TOGGLE */
+    .drink-toggle { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:3px; gap:2px; margin-bottom:14px; }
+    .drink-opt { flex:1; height:30px; border-radius:6px; border:none; background:transparent; color:var(--text3); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; white-space:nowrap; padding:0 4px; }
+    .drink-opt:hover { color:var(--text2); }
+    .drink-opt.active-nodrink { background:var(--red-bg); color:var(--red); }
+    .drink-opt.active-drink { background:var(--bg3); color:var(--text); }
+    .drink-opt.active-moredrink { background:var(--blue-bg); color:var(--blue); }
+
+    /* BUTTONS */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border-radius:var(--radius-sm); border:1px solid var(--border); background:transparent; color:var(--text2); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; padding:9px 16px; transition:all 0.15s; white-space:nowrap; }
+    .btn:hover { border-color:var(--border2); color:var(--text); }
+    .btn-sm { padding:6px 12px; font-size:13px; }
+    .btn-icon { width:36px; height:36px; padding:0; border-radius:var(--radius-sm); }
+    .btn-danger:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+    .btn-accent { background:var(--accent-bg); border-color:rgba(200,169,110,0.3); color:var(--accent); }
+    .btn-accent:hover { background:rgba(200,169,110,0.2); border-color:rgba(200,169,110,0.5); color:var(--accent2); }
+    .btn-full { width:100%; padding:14px; font-size:15px; border-radius:var(--radius); }
+    .btn-primary { background:var(--accent); border-color:var(--accent); color:#0f0f1a; font-weight:600; }
+    .btn-primary:hover { background:var(--accent2); border-color:var(--accent2); color:#0f0f1a; }
+
+    /* LANG BUTTON */
+    .lang-btn { background:transparent; border:1px solid var(--border); border-radius:20px; color:var(--text3); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; padding:4px 10px; cursor:pointer; transition:all 0.15s; letter-spacing:0.3px; }
+    .lang-btn:hover { border-color:var(--border2); color:var(--text); }
+
+    /* RESULTS */
+    .results-section { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-top:8px; animation:fadeIn 0.25s ease; }
+    .results-header { padding:16px 20px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .results-title { font-family:'DM Serif Display',serif; font-size:18px; color:var(--text); }
+    .results-total { font-size:13px; color:var(--text3); }
+    .result-row { display:flex; align-items:center; padding:13px 20px; border-bottom:1px solid var(--border); gap:12px; }
+    .result-row:last-child { border-bottom:none; }
+    .result-avatar { width:32px; height:32px; border-radius:50%; background:var(--bg3); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:var(--text2); flex-shrink:0; }
+    .result-name { flex:1; font-size:14px; font-weight:500; min-width:0; }
+    .result-name .result-notes { font-size:11px; color:var(--text3); font-weight:400; display:flex; gap:6px; flex-wrap:wrap; margin-top:2px; }
+    .result-amount { font-family:'DM Serif Display',serif; font-size:20px; color:var(--accent); white-space:nowrap; }
+    .result-bar-bg { height:3px; background:var(--border); border-radius:2px; margin:0 20px; overflow:hidden; }
+    .result-bar { height:100%; background:var(--accent); border-radius:2px; opacity:0.5; }
+    .tally { padding:14px 20px; background:var(--bg3); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .tally-label { font-size:12px; color:var(--text3); }
+    .tally-value { font-size:14px; font-weight:500; }
+    .tally-value.ok { color:var(--green); }
+    .tally-value.warn { color:var(--red); }
+    .export-bar { display:flex; gap:8px; margin-top:10px; }
+
+    /* MISC */
+    .add-row { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .add-divider { flex:1; height:1px; background:var(--border); }
+    .empty-state { text-align:center; padding:32px 20px; color:var(--text3); font-size:14px; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--text); color:var(--bg); font-size:13px; font-weight:500; padding:10px 20px; border-radius:20px; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:1000; pointer-events:none; white-space:nowrap; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .bottom-actions { position:fixed; bottom:0; left:0; right:0; padding:12px 16px 24px; background:linear-gradient(to top,var(--bg) 70%,transparent); display:flex; gap:10px; max-width:520px; margin:0 auto; }
+    @media(max-width:520px){.bottom-actions{left:0;right:0;margin:0}}
+
+    /* MODAL */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:600; display:flex; align-items:flex-end; justify-content:center; animation:fadeInBg 0.2s ease; }
+    @keyframes fadeInBg{from{opacity:0}to{opacity:1}}
+    .modal { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius) var(--radius) 0 0; width:100%; max-width:520px; padding:0 0 32px; max-height:85dvh; overflow-y:auto; animation:slideUpModal 0.25s cubic-bezier(0.32,0.72,0,1); }
+    @keyframes slideUpModal{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 20px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg2); z-index:1; }
+    .modal-title { font-family:'DM Serif Display',serif; font-size:20px; }
+    .modal-body { padding:16px 20px 0; }
+    .group-row { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); }
+    .group-row:last-child { border-bottom:none; }
+    .group-name { font-size:14px; font-weight:500; color:var(--text); }
+    .group-meta { font-size:12px; color:var(--text3); margin-top:2px; }
+    .group-empty { text-align:center; padding:28px 0; color:var(--text3); font-size:14px; }
+    .save-group-row { display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+    .modal-section-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; margin-top:20px; }
+    .modal-section-label:first-child { margin-top:0; }
+
+    /* CONFIRM */
+    .confirm-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:800; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .confirm-box { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:24px 20px 20px; max-width:320px; width:100%; text-align:center; }
+    .confirm-title { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:8px; }
+    .confirm-msg { font-size:14px; color:var(--text2); margin-bottom:20px; line-height:1.5; }
+    .confirm-btns { display:flex; gap:8px; flex-wrap:wrap; }
+    .confirm-btns .btn { flex:1; justify-content:center; min-width:80px; }
+
+    /* INFO BUTTON */
+    .info-btn { background:transparent; border:1px solid var(--border); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text3); transition:border-color 0.15s,color 0.15s; flex-shrink:0; }
+    .info-btn:hover { border-color:var(--border2); color:var(--text); }
+
+    /* INFO PAGE */
+    .info-page { position:fixed; inset:0; background:var(--bg); z-index:500; overflow-y:auto; animation:slideUp 0.25s cubic-bezier(0.32,0.72,0,1); }
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .info-inner { max-width:520px; margin:0 auto; padding:0 16px 60px; }
+    .info-header { display:flex; align-items:center; justify-content:space-between; padding:40px 0 24px; border-bottom:1px solid var(--border); margin-bottom:28px; }
+    .info-title { font-family:'DM Serif Display',serif; font-size:28px; letter-spacing:-0.5px; }
+    .info-title span { color:var(--accent); font-style:italic; }
+    .info-body { font-size:15px; line-height:1.75; color:var(--text2); }
+    .info-body p { margin-bottom:14px; }
+    .info-body strong { color:var(--text); font-weight:500; }
+
+    .hidden { display:none !important; }
+    .mt8 { margin-top:8px; }
+    .mt12 { margin-top:12px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="header-title">Senpai<span>Split</span></div>
+      <div class="header-sub" data-i18n="subtitle">Proportional · Weighted · Fair</div>
+    </div>
+    <div class="header-actions">
+      <div class="yen-badge">¥ JPY</div>
+      <button class="lang-btn" id="lang-btn" onclick="toggleLang()">日本語</button>
+      <button class="info-btn" onclick="openInfo()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M9 8v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="9" cy="5.5" r="0.8" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- BILL -->
+  <div class="section">
+    <div class="section-label" data-i18n="bill">Bill</div>
+    <div id="items-list" class="items-list"></div>
+    <div class="add-row mt8">
+      <div class="add-divider"></div>
+      <button class="btn btn-sm btn-accent" onclick="addItem()" data-i18n="addItem">+ add item</button>
+      <div class="add-divider"></div>
+    </div>
+    <div class="field mt12" style="margin-bottom:0">
+      <label data-i18n="total">Total (¥)</label>
+      <div id="total-display" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-weight:600;font-size:18px;color:var(--text);min-height:42px;letter-spacing:0.5px;">0</div>
+    </div>
+    <div class="field mt12" style="margin-bottom:0">
+      <label data-i18n="rounding">Rounding</label>
+      <select id="round-level">
+        <option value="1" data-i18n="roundNone">No rounding (¥1)</option>
+        <option value="500" data-i18n="round500">Round to ¥500</option>
+        <option value="1000" selected data-i18n="round1000">Round to ¥1,000</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PEOPLE -->
+  <div class="section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="section-label" style="margin:0" data-i18n="people">People</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="openGroupsModal()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="5" cy="4" r="2" stroke="currentColor" stroke-width="1.2"/>
+            <circle cx="10" cy="4" r="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M1 11c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M10 7c1.7 0 3 1.3 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span data-i18n="groups">Groups</span>
+        </button>
+        <button class="btn btn-sm btn-accent" onclick="addPerson()" data-i18n="addPerson">+ add person</button>
+      </div>
+    </div>
+    <div id="people-list"></div>
+    <div id="people-empty" class="empty-state" data-i18n="noPeople">No people added yet</div>
+  </div>
+
+  <div id="results-container" class="hidden"></div>
+  <div style="height:10px"></div>
+</div>
+
+<!-- BOTTOM -->
+<div class="bottom-actions">
+  <button class="btn btn-full" onclick="clearAll()" style="flex:0 0 auto;width:auto;padding:14px 20px;" data-i18n="reset">Reset</button>
+  <button class="btn btn-full btn-primary" onclick="calculate()" data-i18n="calculate">Calculate split</button>
+</div>
+
+<!-- GROUPS MODAL -->
+<div id="groups-modal" class="modal-backdrop hidden" onclick="onGroupsBackdropClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="groups">Groups</div>
+      <button class="btn btn-icon" onclick="closeGroupsModal()" style="color:var(--text2);">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-label" data-i18n="savedGroups">Saved groups</div>
+      <div id="groups-list"></div>
+      <div class="save-group-row">
+        <input type="text" id="group-name-input" placeholder="Group name…" style="flex:1" />
+        <button class="btn btn-accent" onclick="saveCurrentAsGroup()" data-i18n="saveCurrent">Save current</button>
+      </div>
+      <div class="modal-section-label" data-i18n="addToGroup">Add person to a group</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="add-to-group-section"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm-dialog" class="confirm-backdrop hidden">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title"></div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns" id="confirm-btns"></div>
+  </div>
+</div>
+
+<!-- INFO PAGE -->
+<div id="info-page" class="info-page hidden">
+  <div class="info-inner">
+    <div class="info-header">
+      <div class="info-title">Senpai<span>Split</span></div>
+      <button class="btn btn-icon" onclick="closeInfo()" style="color:var(--text2);">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="info-body" id="info-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── I18N ────────────────────────────────
+const LANGS = {
+  en: {
+    subtitle:'Proportional · Weighted · Fair',
+    bill:'Bill', addItem:'+ add item', total:'Total (¥)', rounding:'Rounding',
+    roundNone:'No rounding (¥1)', round500:'Round to ¥500', round1000:'Round to ¥1,000',
+    people:'People', groups:'Groups', addPerson:'+ add person', noPeople:'No people added yet',
+    reset:'Reset', calculate:'Calculate split',
+    savedGroups:'Saved groups', groupNamePh:'Group name…', saveCurrent:'Save current',
+    addToGroup:'Add person to a group',
+    weightLabel:'Weight (1 = lowest, 5 = highest)',
+    drinkLabel:'Drinking status',
+    drinkNone:'no drink', drinkDrink:'drink', drinkMore:'drink more',
+    fixedLabel:'Fixed amount paid separately (¥)',
+    saveToGroupBtn:'Save to a group…',
+    splitTitle:'Split', sumCheck:'Sum check',
+    exactMatch:'Exact match', offBy:'Off by', roundingNote:'(rounding)',
+    copyText:'Copy text', share:'Share', exportCsv:'Export CSV',
+    noteFixed:'fixed', noteNone:'no drink −0.5', noteMore:'+0.5 drinks',
+    noteFloored:'weight < 3 → floored', noteFixedOnly:'fixed sum only',
+    infoP1:'Having dinner with your senpais? Type the bill, tell how much seniority each person has (on a scale from 1 to 5), specify if someone did not drink or gave a fixed amount, and split the bill without effort!',
+    infoP2:'App developed and provided by Riccardo Muolo and Daniele Proverbio.',
+    loadTitle:'Load', loadMsg:'What should happen to the current people?',
+    replaceAll:'Replace all', append:'Append', cancel:'Cancel',
+    deleteTitle:'Delete', deleteMsg:'This group will be permanently removed.',
+    deleteBtn:'Delete', loadBtn:'Load',
+    addToTitle:'Add to…', chooseGroup:'Choose a group to add this person to.',
+    enterGroupName:'Enter a group name', noPeopleToSave:'No people to save',
+    groupSaved:'Group saved', groupLoaded:'Group loaded', appended:'people appended',
+    wasDeleted:'deleted', addedTo:'added to', saveFirst:'Save a group first, then add people to it',
+    copied:'Copied to clipboard', csvDone:'CSV downloaded', resetDone:'Reset done',
+    enterBill:'Enter a bill amount first', addOnePerson:'Add at least one person',
+    namePh:'Full name', addPeopleFirst:'Add people and save a group first.',
+  },
+  ja: {
+    subtitle:'比例 · 重み付き · 公平',
+    bill:'請求書', addItem:'+ 項目を追加', total:'合計 (¥)', rounding:'丸め',
+    roundNone:'丸めなし (¥1)', round500:'¥500に丸める', round1000:'¥1,000に丸める',
+    people:'メンバー', groups:'グループ', addPerson:'+ 人を追加', noPeople:'まだ誰もいません',
+    reset:'リセット', calculate:'割り勘を計算',
+    savedGroups:'保存済みグループ', groupNamePh:'グループ名…', saveCurrent:'現在を保存',
+    addToGroup:'グループに人を追加',
+    weightLabel:'重み (1 = 最低, 5 = 最高)',
+    drinkLabel:'飲み物の状況',
+    drinkNone:'飲まない', drinkDrink:'飲む', drinkMore:'多く飲む',
+    fixedLabel:'別途支払う固定金額 (¥)',
+    saveToGroupBtn:'グループに保存…',
+    splitTitle:'結果', sumCheck:'合計確認',
+    exactMatch:'完全一致', offBy:'差額', roundingNote:'(丸め)',
+    copyText:'テキストをコピー', share:'共有', exportCsv:'CSVエクスポート',
+    noteFixed:'固定', noteNone:'飲まない −0.5', noteMore:'+0.5 多飲み',
+    noteFloored:'重み < 3 → 切り捨て', noteFixedOnly:'固定金額のみ',
+    infoP1:'センパイと夕食ですか？請求書を入力し、各人の先輩度（1〜5のスケール）を設定し、飲まない人や固定金額を支払った人を指定して、簡単に割り勘をしましょう！',
+    infoP2:'アプリはRiccardo MuoloとDaniele Proverbioが開発・提供しています。',
+    loadTitle:'読み込む', loadMsg:'現在のメンバーをどうしますか？',
+    replaceAll:'全て置き換え', append:'追加', cancel:'キャンセル',
+    deleteTitle:'削除', deleteMsg:'このグループは完全に削除されます。',
+    deleteBtn:'削除', loadBtn:'読み込む',
+    addToTitle:'追加先…', chooseGroup:'追加するグループを選んでください。',
+    enterGroupName:'グループ名を入力してください', noPeopleToSave:'保存する人がいません',
+    groupSaved:'グループを保存しました', groupLoaded:'グループを読み込みました', appended:'人を追加しました',
+    wasDeleted:'削除しました', addedTo:'に追加しました', saveFirst:'先にグループを保存してください',
+    copied:'クリップボードにコピーしました', csvDone:'CSVをダウンロードしました', resetDone:'リセット完了',
+    enterBill:'最初に請求額を入力してください', addOnePerson:'少なくとも1人追加してください',
+    namePh:'氏名', addPeopleFirst:'人を追加してグループを保存してください。',
+  }
+};
+
+let lang = 'en';
+function T(k){ return (LANGS[lang]||LANGS.en)[k] || LANGS.en[k] || k; }
+
+function toggleLang(){
+  lang = lang==='en' ? 'ja' : 'en';
+  try{ localStorage.setItem('ss_lang',lang); }catch(e){}
+  applyLang();
+}
+
+function applyLang(){
+  document.getElementById('lang-btn').textContent = lang==='en' ? '日本語' : 'English';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = T(el.getAttribute('data-i18n'));
+  });
+  // select options need their text set too
+  document.querySelectorAll('option[data-i18n]').forEach(el => {
+    el.textContent = T(el.getAttribute('data-i18n'));
+  });
+  // group name placeholder
+  const gni = document.getElementById('group-name-input');
+  if(gni) gni.placeholder = T('groupNamePh');
+  // info body
+  const ib = document.getElementById('info-body');
+  if(ib) ib.innerHTML = `<p>${T('infoP1')}</p><p>${T('infoP2')}</p>`;
+  // re-render dynamic content
+  renderItems(); renderPeople();
+  if(lastResults) renderResults(lastResults.people, lastResults.shares, lastResults.total);
+}
+
+// ─── STATE ───────────────────────────────
+let items=[], people=[], itemIdCounter=0, personIdCounter=0, lastResults=null;
+
+// ─── INIT ────────────────────────────────
+window.onload = () => {
+  try{ lang = localStorage.getItem('ss_lang')||'en'; }catch(e){}
+  loadState();
+  if(items.length===0) addItem();
+  if(people.length===0){ addPerson(); addPerson(); }
+  applyLang();
+  render();
+};
+
+// ─── PERSISTENCE ─────────────────────────
+function saveState(){
+  try{
+    sessionStorage.setItem('bs_items', JSON.stringify(items));
+    sessionStorage.setItem('bs_people', JSON.stringify(people));
+    sessionStorage.setItem('bs_counters', JSON.stringify({i:itemIdCounter,p:personIdCounter}));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const i=sessionStorage.getItem('bs_items');
+    const p=sessionStorage.getItem('bs_people');
+    const c=sessionStorage.getItem('bs_counters');
+    if(i) items=JSON.parse(i);
+    if(p) people=JSON.parse(p);
+    if(c){ const co=JSON.parse(c); itemIdCounter=co.i; personIdCounter=co.p; }
+  }catch(e){}
+}
+
+// ─── ITEMS ───────────────────────────────
+function addItem(name='',amount=''){
+  items.push({id:++itemIdCounter,name,amount});
+  saveState(); renderItems(); updateTotalDisplay();
+}
+function removeItem(id){
+  items=items.filter(x=>x.id!==id);
+  saveState(); renderItems(); updateTotalDisplay();
+}
+function onItemChange(id,field,val){
+  const item=items.find(x=>x.id===id);
+  if(item) item[field]=val;
+  saveState(); updateTotalDisplay();
+}
+function getItemsTotal(){ return items.reduce((s,x)=>s+(parseFloat(x.amount)||0),0); }
+function getEffectiveTotal(){ return getItemsTotal(); }
+function updateTotalDisplay(){
+  const el=document.getElementById('total-display');
+  if(el) el.textContent='¥'+formatYen(getItemsTotal());
+}
+function renderItems(){
+  const list=document.getElementById('items-list');
+  if(!list) return;
+  list.innerHTML=items.map(item=>`
+    <div class="item-row">
+      <input type="text" placeholder="${T('addItem').replace('+ ','')}" value="${escHtml(item.name)}"
+             oninput="onItemChange(${item.id},'name',this.value)" />
+      <input type="number" placeholder="¥" min="0" value="${item.amount}"
+             oninput="onItemChange(${item.id},'amount',this.value)" />
+      <button class="btn btn-icon btn-danger" onclick="removeItem(${item.id})">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+// ─── PEOPLE ──────────────────────────────
+// drinkStatus: 'none' | 'drink' | 'more'
+function addPerson(){
+  const id=++personIdCounter;
+  people.push({id,name:'',weight:3,drinkStatus:'drink',fixedSum:0,expanded:true});
+  saveState(); renderPeople();
+}
+function removePerson(id){
+  people=people.filter(x=>x.id!==id);
+  saveState(); renderPeople();
+}
+function togglePerson(id){
+  const p=people.find(x=>x.id===id);
+  if(p) p.expanded=!p.expanded;
+  renderPeople();
+}
+function setDrinkStatus(id,status){
+  const p=people.find(x=>x.id===id);
+  if(!p) return;
+  p.drinkStatus=status;
+  saveState(); renderPersonCard(id);
+}
+function onPersonChange(id,field,val){
+  const p=people.find(x=>x.id===id);
+  if(!p) return;
+  if(field==='weight'){
+    val=parseInt(val);
+    if(val<4) p.fixedSum=0;
+    p.weight=val; saveState(); renderPersonCard(id);
+  } else if(field==='fixedSum'){
+    p.fixedSum=parseFloat(val)||0; saveState(); patchPersonTags(id);
+  } else if(field==='name'){
+    p.name=val; saveState(); patchPersonAvatar(id);
+  } else {
+    p[field]=val; saveState();
+  }
+}
+function patchPersonAvatar(id){
+  const p=people.find(x=>x.id===id); if(!p) return;
+  const el=document.querySelector(`#person-card-${id} .person-avatar`);
+  if(el) el.innerHTML=getAvatarContent(p);
+}
+function patchPersonTags(id){
+  const p=people.find(x=>x.id===id); if(!p) return;
+  const el=document.querySelector(`#person-card-${id} .person-tags`);
+  if(el) el.innerHTML=buildTagsHTML(p);
+}
+function buildTagsHTML(p){
+  const tags=[`<span class="tag tag-weight">w${p.weight}</span>`];
+  if(p.drinkStatus==='none') tags.push(`<span class="tag tag-nodrink">${T('drinkNone')}</span>`);
+  if(p.drinkStatus==='more') tags.push(`<span class="tag tag-moredrink">${T('drinkMore')}</span>`);
+  if(p.fixedSum>0) tags.push(`<span class="tag tag-fixed">¥${formatYen(p.fixedSum)}</span>`);
+  return tags.join('');
+}
+function renderPersonCard(id){
+  const p=people.find(x=>x.id===id); if(!p) return;
+  const el=document.getElementById('person-card-'+id);
+  if(!el){ renderPeople(); return; }
+  el.outerHTML=buildPersonCardHTML(p);
+}
+function getInitials(name,id){
+  if(name&&name.trim()){
+    const parts=name.trim().split(/\s+/);
+    return parts.length>=2?(parts[0][0]+parts[parts.length-1][0]).toUpperCase():name.trim().slice(0,2).toUpperCase();
+  }
+  return 'P'+id;
+}
+function getAvatarContent(p){
+  const birds={1:'🐣',2:'🐥',3:'🐦‍⬛',4:'🦉',5:'🦅'};
+  const bird=birds[p.weight];
+  if(bird) return `<span style="font-size:18px;line-height:1;">${bird}</span>`;
+  return getInitials(p.name,p.id);
+}
+function buildPersonCardHTML(p){
+  const weightBtns=[1,2,3,4,5].map(w=>
+    `<button class="weight-btn${p.weight===w?' active':''}" onclick="onPersonChange(${p.id},'weight',${w})">${w}</button>`
+  ).join('');
+  const ds=p.drinkStatus||'drink';
+  const drinkBlock=`
+    <div style="margin-bottom:6px;font-size:13px;color:var(--text2);">${T('drinkLabel')}</div>
+    <div class="drink-toggle">
+      <button class="drink-opt${ds==='none'?' active-nodrink':''}" onclick="setDrinkStatus(${p.id},'none')">${T('drinkNone')}</button>
+      <button class="drink-opt${ds==='drink'?' active-drink':''}" onclick="setDrinkStatus(${p.id},'drink')">${T('drinkDrink')}</button>
+      <button class="drink-opt${ds==='more'?' active-moredrink':''}" onclick="setDrinkStatus(${p.id},'more')">${T('drinkMore')}</button>
+    </div>`;
+  const fixedBlock=p.weight>=4?`
+    <div style="margin-top:2px;margin-bottom:6px;font-size:13px;color:var(--text2);">${T('fixedLabel')}</div>
+    <input type="number" placeholder="0" min="0" value="${p.fixedSum||''}"
+           oninput="onPersonChange(${p.id},'fixedSum',this.value)" />`:'';
+  return `
+    <div class="person-card${p.expanded?' expanded':''}" id="person-card-${p.id}">
+      <div class="person-header">
+        <div class="person-avatar" onclick="togglePerson(${p.id})">${getAvatarContent(p)}</div>
+        <input class="person-name-input" type="text" placeholder="${T('namePh')}"
+               value="${escHtml(p.name)}" oninput="onPersonChange(${p.id},'name',this.value)" />
+        <div class="person-tags">${buildTagsHTML(p)}</div>
+        <button class="btn btn-icon" onclick="togglePerson(${p.id})" style="flex-shrink:0;color:var(--text3);">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="${p.expanded?'M2 8l4-4 4 4':'M2 4l4 4 4-4'}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="btn btn-icon btn-danger" onclick="removePerson(${p.id})" style="flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="person-details">
+        <div class="section-label" style="margin-bottom:8px;">${T('weightLabel')}</div>
+        <div class="weight-selector">${weightBtns}</div>
+        ${drinkBlock}
+        ${fixedBlock}
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+          <button class="btn btn-sm" onclick="savePersonToGroup(${p.id})" style="width:100%;justify-content:center;">${T('saveToGroupBtn')}</button>
+        </div>
+      </div>
+    </div>`;
+}
+function renderPeople(){
+  const list=document.getElementById('people-list');
+  const empty=document.getElementById('people-empty');
+  if(!list) return;
+  if(people.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML=people.map(p=>buildPersonCardHTML(p)).join('');
+}
+
+// ─── ALGORITHM ───────────────────────────
+function splitBill(bill, weights, drinkStatuses, fixedSum, roundLevel){
+  const n=weights.length;
+  // Effective weight adjustments (drink status)
+  const adjWeights=weights.map((w,i)=>{
+    if(drinkStatuses[i]==='none') return w-0.5;
+    if(drinkStatuses[i]==='more') return w+0.5;
+    return w;
+  });
+  // Fixed-sum people pay ONLY their fixed sum and are excluded from the proportional split
+  const paidFixed=fixedSum.map(f=>f>0);
+  const totalFixed=fixedSum.reduce((s,f)=>s+f,0);
+  const remaining=bill-totalFixed;          // amount to split among non-fixed people
+
+  // Effective weights: zero out fixed-sum people
+  const effW=adjWeights.map((w,i)=>paidFixed[i]?0:w);
+  const wSum=effW.reduce((s,w)=>s+w,0);
+  const raw=effW.map(w=>wSum>0?remaining*(w/wSum):0);
+
+  // Highest non-fixed weight person absorbs rounding remainder
+  let idxMax=-1, maxW=-Infinity;
+  effW.forEach((w,i)=>{ if(!paidFixed[i]&&w>maxW){maxW=w;idxMax=i;} });
+
+  const shares=new Array(n).fill(0);
+  // hasHigh only considers non-fixed participants
+  const hasHigh=adjWeights.some((w,i)=>!paidFixed[i]&&w>=3);
+
+  for(let i=0;i<n;i++){
+    if(paidFixed[i]){ shares[i]=fixedSum[i]; continue; }  // fixed: done
+    if(i===idxMax) continue;                               // assigned last
+    const origW=weights[i], isNone=drinkStatuses[i]==='none';
+    if(hasHigh&&(origW<3||!isNone)){
+      shares[i]=Math.floor(raw[i]/roundLevel)*roundLevel;
+    } else {
+      shares[i]=Math.round(raw[i]/roundLevel)*roundLevel;
+    }
+  }
+
+  // Assign remainder to the heaviest non-fixed person.
+  // otherSum must only include other NON-FIXED people (fixed shares are already
+  // accounted for separately via totalFixed; mixing them here causes the sum to break).
+  if(idxMax>=0){
+    const otherSum=shares.reduce((s,x,i)=>(!paidFixed[i]&&i!==idxMax)?s+x:s, 0);
+    shares[idxMax]=remaining-otherSum;
+  }
+
+  return shares;
+}
+
+// ─── CALCULATE ───────────────────────────
+function calculate(){
+  const total=getEffectiveTotal();
+  if(!total||total<=0){ showToast(T('enterBill')); return; }
+  if(people.length===0){ showToast(T('addOnePerson')); return; }
+  const weights=people.map(p=>p.weight);
+  const drinkS=people.map(p=>p.drinkStatus||'drink');
+  const fixedS=people.map(p=>p.fixedSum||0);
+  const round=parseInt(document.getElementById('round-level').value);
+  const shares=splitBill(total,weights,drinkS,fixedS,round);
+  lastResults={people:JSON.parse(JSON.stringify(people)),shares,total};
+  renderResults(lastResults.people,shares,total);
+  document.getElementById('results-container').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ─── RENDER RESULTS ──────────────────────
+function renderResults(ppl,shares,total){
+  const maxS=Math.max(...shares);
+  const sumS=shares.reduce((s,x)=>s+x,0);
+  const diff=sumS-total;
+  const diffStr=diff===0
+    ?`${T('exactMatch')} (¥${formatYen(total)})`
+    :`${T('offBy')} ¥${formatYen(Math.abs(diff))} ${T('roundingNote')}`;
+  const diffClass=Math.abs(diff)<=1?'ok':'warn';
+  const rows=ppl.map((p,i)=>{
+    const name=p.name.trim()||'Person '+p.id;
+    const pct=maxS>0?(shares[i]/maxS*100).toFixed(0):0;
+    const notes=[];
+    if((p.fixedSum||0)>0) notes.push(`${T('noteFixed')} ¥${formatYen(p.fixedSum)}`);
+    else{
+      if(p.drinkStatus==='none') notes.push(T('noteNone'));
+      if(p.drinkStatus==='more') notes.push(T('noteMore'));
+      if(p.weight<3) notes.push(T('noteFloored'));
+    }
+    return `
+      <div class="result-row">
+        <div class="result-avatar">${getAvatarContent(p)}</div>
+        <div class="result-name">${escHtml(name)}
+          ${notes.length?`<div class="result-notes">${notes.map(n=>`<span>${n}</span>`).join('')}</div>`:''}
+        </div>
+        <div class="result-amount">¥${formatYen(shares[i])}</div>
+      </div>
+      <div class="result-bar-bg"><div class="result-bar" style="width:${pct}%"></div></div>`;
+  }).join('');
+  const c=document.getElementById('results-container');
+  c.className='results-section';
+  c.innerHTML=`
+    <div class="results-header">
+      <div class="results-title">${T('splitTitle')}</div>
+      <div class="results-total">¥${formatYen(total)}</div>
+    </div>
+    ${rows}
+    <div class="tally">
+      <span class="tally-label">${T('sumCheck')}</span>
+      <span class="tally-value ${diffClass}">${diffStr}</span>
+    </div>
+    <div style="padding:12px 20px 16px;border-top:1px solid var(--border);">
+      <div class="export-bar">
+        <button class="btn btn-sm" style="flex:1" onclick="copyResults()">${T('copyText')}</button>
+        <button class="btn btn-sm" style="flex:1" onclick="shareResults()">${T('share')}</button>
+        <button class="btn btn-sm" style="flex:1" onclick="exportCSV()">${T('exportCsv')}</button>
+      </div>
+    </div>`;
+}
+
+// ─── EXPORT ──────────────────────────────
+function buildTextResults(){
+  if(!lastResults) return '';
+  const{people:ppl,shares,total}=lastResults;
+  const lines=['=== SenpaiSplit ===',`Total: ¥${formatYen(total)}`,''];
+  ppl.forEach((p,i)=>lines.push(`${p.name.trim()||'Person '+p.id}: ¥${formatYen(shares[i])}`));
+  lines.push('',`Sum: ¥${formatYen(shares.reduce((s,x)=>s+x,0))}`);
+  return lines.join('\n');
+}
+function copyResults(){ const t=buildTextResults(); if(!t) return; navigator.clipboard.writeText(t).then(()=>showToast(T('copied'))); }
+function shareResults(){ const t=buildTextResults(); if(!t) return; if(navigator.share) navigator.share({title:'SenpaiSplit',text:t}).catch(()=>{}); else copyResults(); }
+function exportCSV(){
+  if(!lastResults) return;
+  const{people:ppl,shares,total}=lastResults;
+  const rows=[['Name','Weight','Drink','Fixed','Share (¥)']];
+  ppl.forEach((p,i)=>rows.push([p.name.trim()||'Person '+p.id,p.weight,p.drinkStatus,p.fixedSum||0,shares[i]]));
+  rows.push(['','','','Total',total]);
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='senpaisplit.csv'; a.click();
+  URL.revokeObjectURL(url); showToast(T('csvDone'));
+}
+
+// ─── CLEAR ───────────────────────────────
+function clearAll(){
+  items=[]; people=[]; itemIdCounter=0; personIdCounter=0; lastResults=null;
+  const rc=document.getElementById('results-container'); rc.className='hidden'; rc.innerHTML='';
+  addItem(); addPerson(); addPerson(); sessionStorage.clear(); render(); showToast(T('resetDone'));
+}
+
+// ─── RENDER ALL ──────────────────────────
+function render(){ renderItems(); renderPeople(); updateTotalDisplay(); }
+
+// ─── HELPERS ─────────────────────────────
+function formatYen(n){ return Math.round(n).toLocaleString('ja-JP'); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s){ return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+// ─── GROUPS ──────────────────────────────
+function loadGroups(){ try{ return JSON.parse(localStorage.getItem('ss_groups')||'{}'); }catch(e){ return {}; } }
+function saveGroups(g){ try{ localStorage.setItem('ss_groups',JSON.stringify(g)); }catch(e){} }
+
+function saveCurrentAsGroup(){
+  const input=document.getElementById('group-name-input');
+  const name=input.value.trim();
+  if(!name){ showToast(T('enterGroupName')); return; }
+  if(people.length===0){ showToast(T('noPeopleToSave')); return; }
+  const g=loadGroups(); g[name]=people.map(p=>({name:p.name,weight:p.weight}));
+  saveGroups(g); input.value=''; renderGroupsList(); showToast(T('groupSaved'));
+}
+function loadGroup(groupName){
+  const g=loadGroups(); const members=g[groupName]; if(!members) return;
+  if(people.length===0){ applyGroup(members,false); closeGroupsModal(); return; }
+  showConfirm(`${T('loadTitle')} "${groupName}"`,T('loadMsg'),[
+    {label:T('replaceAll'),action:()=>{ applyGroup(members,false); closeGroupsModal(); }},
+    {label:T('append'),    action:()=>{ applyGroup(members,true);  closeGroupsModal(); }},
+    {label:T('cancel'),    action:()=>closeConfirm()}
+  ]);
+}
+function applyGroup(members,append){
+  if(!append){ people=[]; personIdCounter=0; }
+  members.forEach(m=>{ const id=++personIdCounter; people.push({id,name:m.name,weight:m.weight,drinkStatus:'drink',fixedSum:0,expanded:false}); });
+  saveState(); renderPeople(); showToast(append?`${members.length} ${T('appended')}`:T('groupLoaded'));
+}
+function deleteGroup(groupName){
+  showConfirm(`${T('deleteTitle')} "${groupName}"`,T('deleteMsg'),[
+    {label:T('deleteBtn'),danger:true,action:()=>{
+      const g=loadGroups(); delete g[groupName]; saveGroups(g);
+      renderGroupsList(); closeConfirm(); showToast(`"${groupName}" ${T('wasDeleted')}`);
+    }},
+    {label:T('cancel'),action:()=>closeConfirm()}
+  ]);
+}
+function savePersonToGroup(personId){
+  const p=people.find(x=>x.id===personId); if(!p) return;
+  const g=loadGroups(); const gNames=Object.keys(g);
+  if(gNames.length===0){ showToast(T('saveFirst')); return; }
+  const btns=gNames.map(gn=>({ label:gn, action:()=>{
+    g[gn].push({name:p.name,weight:p.weight}); saveGroups(g);
+    closeConfirm(); renderGroupsList(); showToast(`${p.name||'Person'} ${T('addedTo')} "${gn}"`);
+  }}));
+  btns.push({label:T('cancel'),action:()=>closeConfirm()});
+  showConfirm(`${T('addToTitle')} ${p.name||'person'}`,T('chooseGroup'),btns);
+}
+function renderGroupsList(){
+  const g=loadGroups(); const names=Object.keys(g);
+  const list=document.getElementById('groups-list'); if(!list) return;
+  if(names.length===0){
+    list.innerHTML=`<div class="group-empty">${T('noPeople')}</div>`;
+  } else {
+    list.innerHTML=names.map(name=>{
+      const members=g[name];
+      const preview=members.map(m=>`${m.name||'?'} (w${m.weight})`).join(', ');
+      return `<div class="group-row">
+        <div style="flex:1;min-width:0;">
+          <div class="group-name">${escHtml(name)}</div>
+          <div class="group-meta">${escHtml(preview)}</div>
+        </div>
+        <button class="btn btn-sm btn-accent" onclick="loadGroup('${escAttr(name)}')">${T('loadBtn')}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteGroup('${escAttr(name)}')">${T('deleteBtn')}</button>
+      </div>`;
+    }).join('');
+  }
+  const sec=document.getElementById('add-to-group-section'); if(!sec) return;
+  if(people.length===0||names.length===0){
+    sec.innerHTML=`<span style="font-size:13px;color:var(--text3);">${T('addPeopleFirst')}</span>`;
+  } else {
+    const bm={1:'🐣',2:'🐥',3:'🐦‍⬛',4:'🦉',5:'🦅'};
+    sec.innerHTML=people.map(p=>`<button class="btn btn-sm" onclick="savePersonToGroup(${p.id})"><span style="font-size:14px;">${bm[p.weight]||''}</span>${escHtml(p.name||'Person '+p.id)}</button>`).join('');
+  }
+}
+function openGroupsModal(){ renderGroupsList(); document.getElementById('groups-modal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeGroupsModal(){ document.getElementById('groups-modal').classList.add('hidden'); document.body.style.overflow=''; }
+function onGroupsBackdropClick(e){ if(e.target===document.getElementById('groups-modal')) closeGroupsModal(); }
+
+// ─── CONFIRM ─────────────────────────────
+function showConfirm(title,msg,buttons){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  const el=document.getElementById('confirm-btns');
+  el.innerHTML=buttons.map((b,i)=>`<button class="btn${b.danger?' btn-danger':''}" onclick="confirmAction(${i})">${escHtml(b.label)}</button>`).join('');
+  el._actions=buttons.map(b=>b.action);
+  document.getElementById('confirm-dialog').classList.remove('hidden');
+}
+function confirmAction(i){ const el=document.getElementById('confirm-btns'); if(el._actions&&el._actions[i]) el._actions[i](); }
+function closeConfirm(){ document.getElementById('confirm-dialog').classList.add('hidden'); }
+
+// ─── INFO ────────────────────────────────
+function openInfo(){ document.getElementById('info-page').classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeInfo(){ document.getElementById('info-page').classList.add('hidden'); document.body.style.overflow=''; }
+
+// ─── SERVICE WORKER ──────────────────────
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
